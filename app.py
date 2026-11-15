@@ -21,6 +21,14 @@ def load_inflation():
     cpi["inflation"] = cpi["cpi"].pct_change(12) * 100
     return cpi.dropna()
 
+def load_repo():
+    repo = pd.read_csv("repo.csv", parse_dates=["date"]).sort_values("date")
+    repo["repo"] = pd.to_numeric(
+        repo["repo"].astype(str).str.replace("%", "").str.strip(),
+        errors="coerce",
+    )
+    return repo.dropna()
+
 if page == "Markets":
     options = {"USD/INR": "INR=X", "Nifty 50": "^NSEI", "Sensex": "^BSESN"}
     choice = st.sidebar.selectbox("Pick an indicator", list(options))
@@ -50,37 +58,4 @@ elif page == "Inflation":
     st.metric("Latest inflation", f"{latest:.2f}%")
     if latest > 6:
         st.error("Above RBI's comfort band")
-    elif latest < 2:
-        st.warning("Below RBI's comfort band")
-    else:
-        st.success("Within RBI's comfort band")
-
-else:
-    st.subheader("Repo rate vs inflation")
-    cpi = load_inflation()
-    repo = pd.read_csv("repo.csv", parse_dates=["date"]).sort_values("date")
-repo["repo"] = pd.to_numeric(
-    repo["repo"].astype(str).str.replace("%", "").str.strip(),
-    errors="coerce",
-)
-repo = repo.dropna()
-
-    # for each CPI month, attach the repo rate that was in force at that time
-    merged = pd.merge_asof(cpi.sort_values("date"), repo, on="date").dropna()
-    merged["real_rate"] = merged["repo"] - merged["inflation"]
-
-    long = merged.melt(id_vars="date", value_vars=["repo", "inflation"],
-                       var_name="series", value_name="percent")
-    st.plotly_chart(px.line(long, x="date", y="percent", color="series",
-                            title="Repo rate vs CPI inflation (%)"),
-                    use_container_width=True)
-
-    fig2 = px.line(merged, x="date", y="real_rate",
-                   title="Real interest rate (repo minus inflation)")
-    fig2.add_hline(y=0, line_dash="dash")
-    st.plotly_chart(fig2, use_container_width=True)
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Repo rate", f"{merged['repo'].iloc[-1]:.2f}%")
-    c2.metric("Inflation", f"{merged['inflation'].iloc[-1]:.2f}%")
-    c3.metric("Real rate", f"{merged['real_rate'].iloc[-1]:.2f}%")
+    elif latest
