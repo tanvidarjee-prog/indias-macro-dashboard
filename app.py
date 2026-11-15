@@ -5,7 +5,7 @@ import pandas as pd
 
 st.title("India Macro Dashboard")
 
-page = st.sidebar.radio("Section", ["Markets", "Inflation", "Repo vs Inflation"])
+page = st.sidebar.radio("Section", ["Markets", "Inflation", "Repo vs Inflation", "Taylor Rule"])
 
 
 @st.cache_data(ttl=3600)
@@ -105,9 +105,46 @@ def show_repo_vs_inflation():
     c3.metric("Real rate", f"{merged['real_rate'].iloc[-1]:.2f}%")
 
 
+def show_taylor_rule():
+    st.subheader("Taylor rule: where should the repo rate have been?")
+    st.write(
+        "Suggested repo = neutral real rate + inflation + 0.5 x (inflation - 4). "
+        "This is the inflation-only version. It ignores the output gap."
+    )
+    neutral = st.slider("Neutral real rate (assumption, in %)", 0.0, 3.0, 1.5, 0.25)
+    cpi = load_inflation()
+    repo = load_repo()
+    m = pd.merge_asof(cpi.sort_values("date"), repo, on="date").dropna()
+    if m.empty:
+        st.warning("CPI and repo dates do not overlap. Add an earlier row to repo.csv.")
+        return
+    m["taylor"] = neutral + m["inflation"] + 0.5 * (m["inflation"] - 4)
+    m["gap_bps"] = (m["repo"] - m["taylor"]) * 100
+    long = m.melt(id_vars="date", value_vars=["repo", "taylor"],
+                  var_name="series", value_name="percent")
+    fig = px.line(long, x="date", y="percent", color="series",
+                  title="Actual repo vs Taylor rule benchmark (%)")
+    st.plotly_chart(fig, use_container_width=True)
+    fig2 = px.line(m, x="date", y="gap_bps",
+                   title="Gap: actual repo minus Taylor benchmark (basis points)")
+    fig2.add_hline(y=0, line_dash="dash")
+    st.plotly_chart(fig2, use_container_width=True)
+    gap = m["gap_bps"].iloc[-1]
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Actual repo", f"{m['repo'].iloc[-1]:.2f}%")
+    c2.metric("Taylor benchmark", f"{m['taylor'].iloc[-1]:.2f}%")
+    c3.metric("Gap", f"{gap:.0f} bps")
+    if gap > 0:
+        st.info("Latest month: repo is ABOVE the benchmark, so policy is tighter than the rule suggests.")
+    else:
+        st.info("Latest month: repo is BELOW the benchmark, so policy is looser than the rule suggests.")
+
+
 if page == "Markets":
     show_markets()
 elif page == "Inflation":
     show_inflation()
-else:
+elif page == "Repo vs Inflation":
     show_repo_vs_inflation()
+else:
+    show_taylor_rule()
