@@ -25,8 +25,9 @@ def load_inflation():
         st.error("cpi.csv not found. Upload it to the top level of your repo.")
         st.stop()
     cpi = cpi.sort_values("date")
-    cpi["cpi"] = pd.to_numeric(cpi["cpi"], errors="coerce")
-    cpi["inflation"] = cpi["cpi"].pct_change(12) * 100
+    # this FRED file is already year-on-year inflation in percent
+    cpi["inflation"] = pd.to_numeric(cpi["cpi"], errors="coerce")
+    cpi = cpi[cpi["date"] >= "2019-01-01"]
     return cpi.dropna()
 
 
