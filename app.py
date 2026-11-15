@@ -59,6 +59,11 @@ else:
     st.subheader("Repo rate vs inflation")
     cpi = load_inflation()
     repo = pd.read_csv("repo.csv", parse_dates=["date"]).sort_values("date")
+repo["repo"] = pd.to_numeric(
+    repo["repo"].astype(str).str.replace("%", "").str.strip(),
+    errors="coerce",
+)
+repo = repo.dropna()
 
     # for each CPI month, attach the repo rate that was in force at that time
     merged = pd.merge_asof(cpi.sort_values("date"), repo, on="date").dropna()
