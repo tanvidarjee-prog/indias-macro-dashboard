@@ -92,6 +92,6 @@ else:
     # for each CPI month, attach the repo rate that was in force at that time
     merged = pd.merge_asof(cpi.sort_values("date"), repo, on="date").dropna()
 
-    if merged.empty:
-        st.warning(
-            "No overlap between
+        if merged.empty:
+        st.warning("CPI and repo dates dont overlap. Add an earlier row to repo.csv.")
+        st.stop()
