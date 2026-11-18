@@ -3,7 +3,31 @@ import yfinance as yf
 import plotly.express as px
 import pandas as pd
 
-st.title("India Macro Dashboard")
+st.set_page_config(page_title="India Macro Dashboard", layout="wide")
+
+# ---------------------------------------------------------------
+# EDIT YOUR TEXT HERE. Only change the words between the triple
+# quotes. Do not delete the triple quotes or the commas.
+# Use a blank line between paragraphs. Use ** around words to bold.
+# ---------------------------------------------------------------
+
+TAKE = {
+    "Markets": """Write your take on the markets here.""",
+    "Inflation": """Write your take on inflation here.""",
+    "Repo vs Inflation": """Write your take on the repo rate and real rate here.""",
+    "Taylor Rule": """Write your take on the Taylor rule gap here.""",
+}
+
+INFO = {
+    "Markets": """USD/INR, Nifty 50 and Sensex prices from Yahoo Finance for the last two years. The number under the chart is the change over roughly the last month.""",
+    "Inflation": """CPI inflation, year on year, from FRED. The green band is RBI's 2 to 6 percent tolerance band around a 4 percent target. Data ends in March 2025.""",
+    "Repo vs Inflation": """The real rate is the repo rate minus inflation. When it is negative, borrowing is cheap in real terms. When it is positive, policy is tight.""",
+    "Taylor Rule": """The Taylor rule gives a benchmark for the repo rate: neutral real rate + inflation + 0.5 x (inflation - 4). This is the inflation-only version and it ignores the output gap. The neutral rate is an assumption, so try the slider. RBI does not follow this rule strictly, so read the gap as a comparison, not a verdict.""",
+}
+
+SOURCES = "Sources: FRED (CPI inflation), RBI policy announcements (repo rate, compiled by hand), Yahoo Finance (markets). CPI data ends in March 2025."
+
+# ---------------------------------------------------------------
 
 page = st.sidebar.radio("Section", ["Markets", "Inflation", "Repo vs Inflation", "Taylor Rule"])
 
@@ -46,6 +70,7 @@ def load_repo():
 
 
 def show_markets():
+    st.subheader("Markets")
     options = {"USD/INR": "INR=X", "Nifty 50": "^NSEI", "Sensex": "^BSESN"}
     choice = st.sidebar.selectbox("Pick an indicator", list(options))
     try:
@@ -72,7 +97,8 @@ def show_inflation():
     fig.add_hline(y=4, line_dash="dash", annotation_text="Target 4 percent")
     st.plotly_chart(fig, use_container_width=True)
     latest = cpi["inflation"].iloc[-1]
-    st.metric("Latest inflation", f"{latest:.2f}%")
+    asof = cpi["date"].iloc[-1].strftime("%b %Y")
+    st.metric(f"Inflation (as of {asof})", f"{latest:.2f}%")
     if latest > 6:
         st.error("Above the RBI comfort band")
     elif 2 > latest:
@@ -99,18 +125,16 @@ def show_repo_vs_inflation():
                    title="Real interest rate (repo minus inflation)")
     fig2.add_hline(y=0, line_dash="dash")
     st.plotly_chart(fig2, use_container_width=True)
+    asof = merged["date"].iloc[-1].strftime("%b %Y")
+    st.caption(f"Latest values are as of {asof}, the last month of CPI data.")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Repo rate", f"{merged['repo'].iloc[-1]:.2f}%")
-    c2.metric("Inflation", f"{merged['inflation'].iloc[-1]:.2f}%")
-    c3.metric("Real rate", f"{merged['real_rate'].iloc[-1]:.2f}%")
+    c1.metric(f"Repo rate ({asof})", f"{merged['repo'].iloc[-1]:.2f}%")
+    c2.metric(f"Inflation ({asof})", f"{merged['inflation'].iloc[-1]:.2f}%")
+    c3.metric(f"Real rate ({asof})", f"{merged['real_rate'].iloc[-1]:.2f}%")
 
 
 def show_taylor_rule():
     st.subheader("Taylor rule: where should the repo rate have been?")
-    st.write(
-        "Suggested repo = neutral real rate + inflation + 0.5 x (inflation - 4). "
-        "This is the inflation-only version. It ignores the output gap."
-    )
     neutral = st.slider("Neutral real rate (assumption, in %)", 0.0, 3.0, 1.5, 0.25)
     cpi = load_inflation()
     repo = load_repo()
@@ -129,15 +153,25 @@ def show_taylor_rule():
                    title="Gap: actual repo minus Taylor benchmark (basis points)")
     fig2.add_hline(y=0, line_dash="dash")
     st.plotly_chart(fig2, use_container_width=True)
+    asof = m["date"].iloc[-1].strftime("%b %Y")
     gap = m["gap_bps"].iloc[-1]
     c1, c2, c3 = st.columns(3)
-    c1.metric("Actual repo", f"{m['repo'].iloc[-1]:.2f}%")
-    c2.metric("Taylor benchmark", f"{m['taylor'].iloc[-1]:.2f}%")
-    c3.metric("Gap", f"{gap:.0f} bps")
+    c1.metric(f"Actual repo ({asof})", f"{m['repo'].iloc[-1]:.2f}%")
+    c2.metric(f"Taylor benchmark ({asof})", f"{m['taylor'].iloc[-1]:.2f}%")
+    c3.metric(f"Gap ({asof})", f"{gap:.0f} bps")
     if gap > 0:
         st.info("Latest month: repo is ABOVE the benchmark, so policy is tighter than the rule suggests.")
     else:
         st.info("Latest month: repo is BELOW the benchmark, so policy is looser than the rule suggests.")
+
+
+def show_notes(name):
+    st.divider()
+    st.markdown("### About this section")
+    st.markdown(INFO[name])
+    st.markdown("### My take")
+    st.markdown(TAKE[name])
+    st.caption(SOURCES)
 
 
 if page == "Markets":
@@ -148,3 +182,5 @@ elif page == "Repo vs Inflation":
     show_repo_vs_inflation()
 else:
     show_taylor_rule()
+
+show_notes(page)
