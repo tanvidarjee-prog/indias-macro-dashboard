@@ -12,17 +12,53 @@ st.set_page_config(page_title="India Macro Dashboard", layout="wide")
 # ---------------------------------------------------------------
 
 TAKE = {
-    "Markets": """Write your take on the markets here.""",
-    "Inflation": """Write your take on inflation here.""",
-    "Repo vs Inflation": """Write your take on the repo rate and real rate here.""",
-    "Taylor Rule": """Write your take on the Taylor rule gap here.""",
+    "Markets": """Markets are the fastest-moving part of this dashboard, and they react to the slow-moving parts. Rate expectations, inflation surprises and foreign investor flows show up in the rupee and in equity prices long before they appear in monthly CPI.
+
+**Why the rupee matters for inflation:** India imports most of its crude oil, so a weaker rupee makes imported fuel costlier and can push CPI up. That is one reason RBI keeps an eye on USD/INR even though its formal mandate is inflation.
+
+**How to use this page:** read it alongside the next three sections. When inflation or rate expectations shift, check whether the rupee and the Nifty moved with them. This page shows live prices only, so I draw no conclusion about the latest move.""",
+
+    "Inflation": """Inflation in India has been volatile rather than steadily trending. In this dataset it first crossed 6% in **April 2022 (6.33%)**, hit **6.97% in May 2022**, and stayed above 6% on and off until August 2023.
+
+The peak is **7.54% in July 2023**, up sharply from 5.57% only a month earlier. A one-month jump that large looks more like a food price shock than a change in underlying demand. That is a hypothesis, not a finding: vegetable prices are widely cited for that period, but this dataset has no food breakdown, so I cannot prove it here.
+
+Since then inflation has come down a lot. It reached a low of **2.15% in July 2024** and ended the data at **2.95% in March 2025**. That is inside RBI's band but below the 4% target, so the policy worry shifted from inflation being too high to growth needing support.""",
+
+    "Repo vs Inflation": """The real rate tells the story better than the repo rate alone.
+
+**2020 to 2022: cheap money.** From June 2020 until October 2022 the real rate was negative. Repo sat at 4.00% until May 2022 while inflation rose, and the deepest point was **May 2022 at -2.97%** (repo 4.00%, inflation 6.97%). That supports the view that RBI was slow to respond. The fair counterpoint is that RBI was protecting the post-Covid recovery.
+
+**2022 to 2023: catching up.** RBI then raised the repo rate from 4.00% to 6.50% (250 bps) between May 2022 and February 2023, and the real rate turned positive in November 2022. It slipped back below zero in July and August 2023 (-1.04% and -0.41%) when inflation spiked to 7.54% while repo stayed at 6.50%.
+
+**2023 to 2025: tight.** Repo was held at 6.50% until the first cut in February 2025. With inflation falling, the real rate reached **+4.35% in July 2024** and was **+3.30% in March 2025**, which is tight relative to inflation of 2.95%. That is the setup for the rate cuts that followed in 2025.
+
+**Caution:** inflation fell while rates were high, which is consistent with tightening working. It is not proof, because food prices and global commodity prices moved too.""",
+
+    "Taylor Rule": """Against a simple Taylor benchmark (neutral rate 1.5%), RBI was **far behind the curve in 2022**. In May 2022 the actual repo rate was about **595 bps below** the benchmark. In July 2023 it was still about **430 bps below**, even after 250 bps of hikes, because inflation had reached 7.5%.
+
+The gap turned positive in October 2023. After that RBI held repo well above what the rule suggests: about **+378 bps in July 2024** (inflation 2.15%) and still **+232 bps in March 2025**.
+
+**Two ways to read that.** One: RBI was cautious and kept policy tighter than needed. Two: the benchmark is misleading because it reacts to every wiggle in headline inflation, while RBI looks through temporary food shocks and also weighs growth, which this simple rule leaves out. I lean towards the second reading, so I treat the gap as a comparison, not proof of a policy mistake.
+
+**Robustness check:** moving the neutral rate between 1% and 2% shifts the lines but not the story. The March 2025 gap is +282 bps at 1% and +182 bps at 2%, and in both cases RBI was far below the benchmark in 2022 and above it by 2025.""",
 }
 
 INFO = {
-    "Markets": """USD/INR, Nifty 50 and Sensex prices from Yahoo Finance for the last two years. The number under the chart is the change over roughly the last month.""",
-    "Inflation": """CPI inflation, year on year, from FRED. The green band is RBI's 2 to 6 percent tolerance band around a 4 percent target. Data ends in March 2025.""",
-    "Repo vs Inflation": """The real rate is the repo rate minus inflation. When it is negative, borrowing is cheap in real terms. When it is positive, policy is tight.""",
-    "Taylor Rule": """The Taylor rule gives a benchmark for the repo rate: neutral real rate + inflation + 0.5 x (inflation - 4). This is the inflation-only version and it ignores the output gap. The neutral rate is an assumption, so try the slider. RBI does not follow this rule strictly, so read the gap as a comparison, not a verdict.""",
+    "Markets": """USD/INR, Nifty 50 and Sensex prices from Yahoo Finance for the last two years. The number under the chart is the change over roughly the last month (22 trading days). These are live market prices, not RBI data.
+
+**How to read it:** a rising USD/INR means the rupee is weakening. A falling Nifty or Sensex means equities are repricing, often because of rate expectations, foreign investor flows or global risk.""",
+
+    "Inflation": """CPI inflation (year on year) for India, from FRED. The green band is RBI's 2 to 6 percent tolerance band around a 4 percent target, which is the inflation targeting framework in place since 2016.
+
+If inflation stays outside the band for three quarters in a row, RBI is considered to have failed the target and must explain why to the government. The data in this app ends in March 2025.""",
+
+    "Repo vs Inflation": """The repo rate is the rate at which RBI lends to banks and is its main policy lever. It is compiled by hand from RBI policy announcements. Each CPI month is matched with the repo rate in force at that time.
+
+**Real rate = repo rate minus inflation.** Negative means borrowing is cheap in real terms and savers lose purchasing power. Positive means policy is tight. This uses actual inflation, while RBI decides based on expected inflation, so the real rate here is a simple approximation.""",
+
+    "Taylor Rule": """The Taylor rule gives a benchmark for the repo rate: **neutral real rate + inflation + 0.5 x (inflation - 4)**. This is the inflation-only version and it ignores the output gap, because there is no monthly GDP data here.
+
+The gap is actual repo minus the benchmark, in basis points (100 bps = 1 percentage point). Negative means RBI was looser than the rule suggests, and positive means tighter. The neutral rate is an assumption, so try the slider.""",
 }
 
 SOURCES = "Sources: FRED (CPI inflation), RBI policy announcements (repo rate, compiled by hand), Yahoo Finance (markets). CPI data ends in March 2025."
